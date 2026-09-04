@@ -21,17 +21,23 @@ jobs:
           echo "Found Android project folder at: $PROJECT_DIR"
           cd "$PROJECT_DIR"
           
-          # Force generate standard environment wrappers
-          sudo apt-get update && sudo apt-get install -y gradle
-          gradle wrapper
+          # Check if gradlew exists, if not create it with compatible version
+          if [ ! -f "gradlew" ]; then
+            echo "gradlew not found, installing Gradle..."
+            sudo apt-get update && sudo apt-get install -y gradle
+            gradle wrapper --gradle-version=8.7
+          fi
+          
           chmod +x gradlew
           
+          # Create gradle configuration files
           mkdir -p gradle
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
           echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
           
-          # Compile right inside the detected project directory
+          # Compile with updated gradle wrapper
           ./gradlew assembleDebug --no-daemon
 
       - name: Find and Upload Finished APK
