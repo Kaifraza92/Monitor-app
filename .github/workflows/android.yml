@@ -15,15 +15,23 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Auto-Inject Missing Android Settings
+        run: |
+          mkdir -p gradle
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
+
       - name: Fix Gradle Execute Permission
         run: chmod +x gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Build Debug APK with Error Diagnostics
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
           name: my-ai-studio-app
-          path: app/build/outputs/apk/debug/app-debug.apk
-          
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            **/build/outputs/apk/debug/*.apk
