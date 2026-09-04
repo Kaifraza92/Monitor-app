@@ -1,4 +1,4 @@
-name: Failsafe Android APK Build
+name: Intelligent Android APK Build
 on: [push, workflow_dispatch]
 
 jobs:
@@ -14,27 +14,29 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Force Install Missing Gradle Wrapper
+      - name: Locate Project, Inject Settings & Compile APK
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gradle
+          # Find where build.gradle or build.gradle.kts is hiding
+          PROJECT_DIR=$(find . -name "build.gradle" -o -name "build.gradle.kts" | head -n 1 | xargs dirname)
+          echo "Found Android project folder at: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          
+          # Force generate standard environment wrappers
+          sudo apt-get update && sudo apt-get install -y gradle
           gradle wrapper
           chmod +x gradlew
-
-      - name: Detect and Fix AI Studio Layout
-        run: |
+          
           mkdir -p gradle
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
           echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
-
-      - name: Compile Direct Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace --warning-mode all
-
-      - name: Find and Extract Generated APK
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: fixed-ai-studio-app
-          path: "**/build/outputs/apk/debug/*.apk"
           
+          # Compile right inside the detected project directory
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Find and Upload Finished APK
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: working-ai-studio-app
+          path: "**/build/outputs/apk/debug/*.apk"
