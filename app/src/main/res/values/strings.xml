@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Al Zuhra Class Monitoring</string>
+    <string name="accessibility_service_label">Al Zuhra Meet Automation</string>
+    <string name="accessibility_service_description">Automates scheduled Google Meet Join and Leave operations with camera and microphone strictly disabled for Al Zuhra Class Monitoring.</string>
+</resources>

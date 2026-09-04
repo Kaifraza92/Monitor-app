@@ -1,0 +1,6 @@
+{
+  "name": "Al Zuhra Class Monitoring",
+  "description": "Automated scheduled Google Meet presence and class monitoring utility for Al Zuhra Academy.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
