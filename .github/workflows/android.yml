@@ -1,37 +1,40 @@
-name: Build Android APK
+name: Failsafe Android APK Build
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Code Base
         uses: actions/checkout@v5
 
-      - name: Set up JDK 17
+      - name: Deploy Java Environment
         uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Auto-Inject Missing Android Settings
+      - name: Force Install Missing Gradle Wrapper
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gradle
+          gradle wrapper
+          chmod +x gradlew
+
+      - name: Detect and Fix AI Studio Layout
         run: |
           mkdir -p gradle
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
           echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
 
-      - name: Fix Gradle Execute Permission
-        run: chmod +x gradlew
+      - name: Compile Direct Debug APK
+        run: ./gradlew assembleDebug --no-daemon --stacktrace --warning-mode all
 
-      - name: Build Debug APK with Error Diagnostics
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Upload Finished APK
+      - name: Find and Extract Generated APK
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: my-ai-studio-app
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            **/build/outputs/apk/debug/*.apk
+          name: fixed-ai-studio-app
+          path: "**/build/outputs/apk/debug/*.apk"
+          
